@@ -24,5 +24,3 @@ while (True):
     while (temp.find("$") == -1):
         temp += spawn.readline().decode()
     temp = temp[:temp.find("$")] + "\n" + "$ "
-
-exit()
