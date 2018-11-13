@@ -1,0 +1,12 @@
+transition notes
+
+II3 cannot escalate with PE1 or PE2
+
+Tested and Working
+II1 -> PE1 
+II2 -> PE1 
+II2 -> PE2 
+
+Tested and Not working
+II3 -> PE1
+II3 -> PE2

