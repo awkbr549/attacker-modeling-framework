@@ -1,8 +1,19 @@
 transition notes
 
+RE-Recon
+II-Initial Intrusion
+PE-Privilege Escalation
+PR-Persistence
+DI-Discovery
+DE-Data Exfiltration
+
+
 II3 cannot escalate with PE1 or PE2
 
 Tested and Working
+RE1 -> II1,2,3
+RE2 -> II1,2,3
+RE3 -> II1,2,3
 II1 -> PE1 
 II2 -> PE1 
 II2 -> PE2 
