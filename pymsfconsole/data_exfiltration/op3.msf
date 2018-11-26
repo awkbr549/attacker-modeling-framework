@@ -1,0 +1,3 @@
+sessions -u $SESSION
+sessions -i $SESSION -C 'download public/images/10_of_spades.png'
+ 

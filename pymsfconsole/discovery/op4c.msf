@@ -1,0 +1,1 @@
+sessions -i $SESSION -c 'find /opt/readme_app -name 10_of_spades.png'

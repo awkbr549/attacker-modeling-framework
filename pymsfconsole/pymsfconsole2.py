@@ -59,7 +59,7 @@ def get_option(state=""):
     while (True):
         try:
             opt_val = int(input("\nINFO: Please enter an option: "))
-            if (1 <= opt_val <= len(option_list)):
+            if (0 <= opt_val <= len(option_list)):
                 break
             else:
                 print("\tERROR: Invalid option.")
@@ -130,18 +130,47 @@ def run_msf_script(state, option):
             line = line[:line.find("$HOST_IP")] + \
                 host_ip + \
                 line[line.find("$HOST_IP")+len("$HOST_IP"):]
-
+        if (line.find("$SESSION") >= 0):
+            line = line[:line.find("$SESSION")] + \
+                str(msf_session_id_list[len(msf_session_id_list)-1]) + \
+                line[line.find("$SESSION")+len("$SESSION"):]
+            
         #print("sending: " + line)
         #input()
         msf_spawn.sendline(line.encode())
         sleep(2)
 
+        #whether or not we need to be looking for a session ID
+        session_bool = False
+        if (line.startswith("run") or line.startswith("exploit") or line.startswith("sessions -u")):
+            session_bool = True
         while (True):
             try:
-                print(msf_stdout_q.get_nowait(), end="")
-                #msf_stdout_q.get_nowait()
+                temp = msf_stdout_q.get_nowait()
+                print(temp, end="")
+                if (temp.find("Exploit failed") >= 0):
+                    #option failed
+                    session_bool = False
+                    
+                if (session_bool):
+                    if (temp.find("Command shell session ") >= 0):
+                        start_index = temp.find("Command shell session ") + \
+                                      len("Command shell session ")
+                        stop_index = start_index + 1
+                        msf_session_id_list.append(int(temp[start_index:stop_index]))
+                        session_bool = False
+                        #print(msf_session_id_list)
+                if (session_bool):
+                    if (temp.find("Meterpreter session ") >= 0):
+                        start_index = temp.find("Meterpreter session ") + \
+                                      len("Meterpreter session ")
+                        stop_index = start_index + 1
+                        msf_session_id_list.append(int(temp[start_index:stop_index]))
+                        session_bool = False
+                        #print(msf_session_id_list)
             except (QueueEmpty):
-                break
+                if (not session_bool):
+                    break
             #sleep(0.1)
             sys.stdout.flush()
             sleep(1)
@@ -157,10 +186,14 @@ def run_msf_script(state, option):
     sleep(1)
 
 def run_state(state=""):
+    #while (True):
     print("==========")
     print("STATE: " + state)
     print("==========")
     option = get_option(state)
+    #if (option == "msf"):
+            
+        
     if (option != ""):
         #subprocess.call(["cat", getcwd() + "/" + state + "/" + option])
         #if (option == "msf"):
@@ -184,8 +217,10 @@ def run_state(state=""):
 
 msf_spawn = pexpect.spawn("msfconsole -n")
 msf_stdout_q = Queue()
+enqueue_thread_id = None
+msf_session_id_list = []
 try:
-    _thread.start_new_thread(enqueue_stdout, (msf_spawn, msf_stdout_q))
+    enqueue_thread_id = _thread.start_new_thread(enqueue_stdout, (msf_spawn, msf_stdout_q))
     sleep(1)
 except:
     print("\nERROR: Unable to start thread. Try running with `sudo`")
@@ -258,12 +293,15 @@ while (True):
 
 #temp = spawn.read(26).decode()
 #print(temp)
-msf_stdout_q.put(msf_spawn.read(26).decode())
-msf_stdout_q.get_nowait()
+#msf_stdout_q.put(msf_spawn.read(26).decode())
+#msf_stdout_q.get_nowait()
+msf_spawn.sendline()
 #print(stdout_q.get_nowait())
 
 next_state = run_state("recon")
-#next_state = run_state("initial_intrusion")
+#####
+#don't forget to replace this line with letting the victim know to start logging
+#####
 while (True):
     if (next_state == "exit"):
         print("Exiting... ")

