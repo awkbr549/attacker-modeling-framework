@@ -7,6 +7,7 @@ from queue import Empty as QueueEmpty
 import socket
 from time import sleep
 import sys
+from os import getcwd, listdir
 import os
 import subprocess
 import struct
@@ -141,7 +142,7 @@ def run_state(state=""):
                     l = l[:l.find('$')] + victim_ip + ';'
                     cmd_file.write(l)
                 elif 'sessions -i' in l and '$SESSION' in l and '$HOST_IP' in l:
-                    l = l[:l.find('$SESSION')] + str(session_counter) + l[l.find('$SESSION')+8:l.find('$HOST_IP')] + host_ip + l[l.find('$HOST_IP')+8:] + 'sleep 10;'
+                    l = l[:l.find('$SESSION')] + str(session_counter) + l[l.find('$SESSION')+8:l.find('$HOST_IP')] + host_ip + l[l.find('$HOST_IP')+8:] + ';sleep 10;'
                     print(l)
                     cmd_file.write(l)
                 elif '$HOST_IP' in l:
@@ -231,16 +232,19 @@ while (True):
         if msf_string_active:
             cmd_file.write('exit -y"\n')
         print("Final Shell Script: \n\n----------------")
-        p = cmd_file.read()
-        print(p)
+        cmd_file.close()
+        p = open('cmd_temp', mode='r')
+        print(p.read())
+        cmd_file.close()
         sys.stdout.flush()
         sleep(1)
         break
     next_state = run_state(next_state)
 
-cmd_file.close()
 os.chmod('cmd_temp', 0o744)
 print("Executing Assembled Shell Script")
+os.system('msfdb init')
 os.system('./cmd_temp')
+os.remove('cmd_temp')
 exit()
 
