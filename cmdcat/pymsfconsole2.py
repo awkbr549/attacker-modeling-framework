@@ -200,7 +200,7 @@ def run_state(state=""):
         #    print("INFO: Giving control of msfconsole to user. Use 'Ctrl + ]' to return control to utility.")
         #    sleep(1)
         #    msf_spawn.interact()
-        if (option.endswith(".sh")):
+        if (option.endswith(".sh")):session
             #subprocess.call([getcwd() + "/" + state + "/" + option])
             #subprocess.call([getcwd() + "/" + state + "/" + option, victim_ip])
             run_shell_script(state, option)
@@ -222,7 +222,7 @@ msf_session_id_list = []
 try:
     enqueue_thread_id = _thread.start_new_thread(enqueue_stdout, (msf_spawn, msf_stdout_q))
     sleep(1)
-except:
+except:session
     print("\nERROR: Unable to start thread. Try running with `sudo`")
     exit(1)
 

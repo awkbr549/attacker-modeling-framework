@@ -1,0 +1,1 @@
+sessions -i $SESSION -c 'find / -name 3_of_hearts.png'

